@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 Gst.init(None)
 
 import time, _thread, urllib.request, urllib.error, json, os
-#from urllib.error import URLError
 
 from gi.repository import Notify
 Notify.init("Maximum")
@@ -22,20 +20,21 @@ def print_t(delay):
     fetched_t = None
     while True:
         try:
-            req = urllib.request.urlopen('http://station.ru/services/StationService.svc/json/GetCurrentStationTrack?stationId=maximum')
+            req = urllib.request.urlopen('http://service.station.qsupport.ru/api/tracklist?id=2792')
             data = json.loads(req.readall().decode('utf-8'))
-            fetched_t = data["d"]["Artist"] + " - " + data["d"]["Song"]
+            fetched_t = data["Current"]["Artist"] + " - " + data["Current"]["Song"]
         except urllib.error.URLError as e:
             print(e.reason)
             os._exit(1)
-#            data = json.loads(req.readall().decode('utf-8'))
-#            fetched_t = data["d"]["Artist"] + " - " + data["d"]["Song"]
+        except urllib.error.HTTPError as e:
+            print(e)
+            print(e.args)
+            os._exit(1)
             
         if fetched_t == current_t:
             pass
         else:
             current_t = fetched_t
-#            print (current_t + '\n')
             info.update("Maximum", current_t, None)
             info.show()
 
@@ -54,11 +53,6 @@ def play():
 info = Notify.Notification.new("Maximum","Sang", None)
 _thread.start_new_thread(print_t, (3,))
 play()
-
-#music_uri = 'http://maximum.fmtuner.ru'
-#player = Gst.ElementFactory.make('playbin', None)
-#player.set_property('uri', music_uri)
-#player.set_state(Gst.State.PLAYING)
 
 #stdscr.addstr(20,2,"Hit 'q' to quit")
 #stdscr.move(0,20)
