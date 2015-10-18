@@ -4,7 +4,7 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 Gst.init(None)
 
-import time, _thread, urllib.request, urllib.error, json, os
+import time, threading, urllib.request, urllib.error, json, os
 
 from gi.repository import Notify
 Notify.init("Maximum")
@@ -20,7 +20,7 @@ def print_t(delay):
     fetched_t = None
     while True:
         try:
-            req = urllib.request.urlopen('http://service.station.qsupport.ru/api/tracklist?id=2792')
+            req = urllib.request.urlopen('http://maximum.ru/currenttrack.aspx?station=maximum')
             data = json.loads(req.readall().decode('utf-8'))
             fetched_t = data["Current"]["Artist"] + " - " + data["Current"]["Song"]
         except urllib.error.URLError as e:
@@ -51,7 +51,10 @@ def play():
     player.set_state(Gst.State.PLAYING)
 
 info = Notify.Notification.new("Maximum","Sang", None)
-_thread.start_new_thread(print_t, (3,))
+t = threading.Thread(target=print_t, args=(3,))
+t.daemon = True
+t.start()
+#_thread.start_new_thread(print_t, (3,))
 play()
 
 #stdscr.addstr(20,2,"Hit 'q' to quit")
@@ -59,7 +62,6 @@ play()
 #key = ''
 #while key != ord('q'):
 #    key = stdscr.getch()
-#
 #curses.endwin()
 
 
@@ -68,3 +70,5 @@ play()
 time.sleep(1)
 input('Press Enter to quit')
 info.close()
+del t
+os._exit(0)
